@@ -1,0 +1,101 @@
+from typing_extensions import TypedDict
+from langgraph.graph import StateGraph, START, END
+from langchain_openai import ChatOpenAI
+from IPython.display import Image, display
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.7, max_tokens=100, api_key=OPENAI_API_KEY)
+
+# Graph state
+class State(TypedDict):
+    topic: str
+    joke1: str
+    joke2: str
+    joke3: str
+    jokeFunny: str
+    combined_output: str
+
+
+# Nodes
+def call_llm_1(state: State):
+    """First LLM call to generate joke 1"""
+
+    msg = llm.invoke(f"Write a joke about {state['topic']}")
+    return {"joke1": msg.content}
+
+
+def call_llm_2(state: State):
+    """Second LLM call to generate joke 2"""
+
+    msg = llm.invoke(f"Write a funny joke about {state['topic']}")
+    return {"joke2": msg.content}
+
+
+def call_llm_3(state: State):
+    """Third LLM call to generate joke 3"""
+
+    msg = llm.invoke(f"Generate a joke about {state['topic']}")
+    return {"joke3": msg.content}
+
+
+def aggregator(state: State):
+    """Combine the joke and story into a single output message."""
+
+    system_prompt_todo="You will be given a set of jokes where you will choose the funniest out of the ones provided. Structure your output as exactly the joke you choose.\n"
+
+    combined = f"Here are some jokes about {state['topic']}! Choose the funniest one.\n\n"
+
+    # TODO if i were to actually implement this there would be a single joke state in memory with a list of jokes generated. For this case i might also use pydantic formatted structured llm
+    combined += f"\n{state['joke1']}\n\n"
+    combined += f"\n{state['joke2']}\n\n"
+    combined += f"\n{state['joke3']}"
+
+    msg = llm.invoke(f"{system_prompt_todo}{combined}")
+
+    print(f"All three generated jokes: {combined}")
+
+    return {"combined_output": msg.content}
+
+
+# Build workflow
+parallel_builder = StateGraph(State)
+
+# Add nodes
+parallel_builder.add_node("call_llm_1", call_llm_1)
+parallel_builder.add_node("call_llm_2", call_llm_2)
+parallel_builder.add_node("call_llm_3", call_llm_3)
+parallel_builder.add_node("aggregator", aggregator)
+
+# Add edges to connect nodes
+parallel_builder.add_edge(START, "call_llm_1")
+parallel_builder.add_edge(START, "call_llm_2")
+parallel_builder.add_edge(START, "call_llm_3")
+parallel_builder.add_edge("call_llm_1", "aggregator")
+parallel_builder.add_edge("call_llm_2", "aggregator")
+parallel_builder.add_edge("call_llm_3", "aggregator")
+parallel_builder.add_edge("aggregator", END)
+parallel_workflow = parallel_builder.compile()
+
+
+while True:
+    try:
+        user_input = input("Joke Topic: ")
+        if user_input.lower() in ["quit", "exit", "q"]:
+            print("Goodbye!")
+            break
+        # Invoke
+        state = parallel_workflow.invoke({"topic": user_input})
+        print(state["combined_output"])
+    except:
+        # fallback if input() is not available
+        print("Exception on " + user_input)
+        break
+
+# Show the workflow
+img = Image(parallel_workflow.get_graph().draw_mermaid_png())
+with open("diagrams/parallel_aggregator.png", "wb") as png:
+    png.write(img.data)
