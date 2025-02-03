@@ -23,6 +23,7 @@ class Route(BaseModel):
     )
 
 
+
 # Augment the LLM with schema for structured output
 router = llm.with_structured_output(Route)
 

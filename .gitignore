@@ -20,6 +20,9 @@ __pycache__/
 .env.local
 .env.*.local
 
+# Google Auth
+token.json
+
 # Pipenv files
 Pipfile
 Pipfile.lock
