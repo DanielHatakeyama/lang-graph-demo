@@ -1,0 +1,20 @@
+# tools/__init__.py
+
+import pkgutil
+import importlib
+import inspect
+from langchain.tools import BaseTool
+
+ALL_TOOLS = []
+
+# Dynamically discover all modules in the current package
+for loader, module_name, is_pkg in pkgutil.iter_modules(__path__):
+    module = importlib.import_module(f"{__name__}.{module_name}")
+    
+    # Inspect the module’s attributes
+    for name, obj in inspect.getmembers(module):
+        # Check if the attribute is a subclass or instance of BaseTool
+        # (or if you prefer, just look for a callable with a `_langchain_tool` attribute)
+        if isinstance(obj, BaseTool):
+            ALL_TOOLS.append(obj)
+
