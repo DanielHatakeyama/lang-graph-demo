@@ -33,17 +33,17 @@ It’s structured to make it easy to expand with more tools, subgraphs, and addi
 
 ### Step 1: Clone the Repository
 
-<CODE>
+```
 git clone <your-repo-url>
 cd <repo-folder>
-</CODE>
+```
 
 ### Step 2: Create and Activate a Virtual Environment
 
-<CODE>
+```
 python -m venv venv  # or python3, depending on your system
 source venv/bin/activate  # On Windows, use: venv\Scripts\activate
-</CODE>
+```
 
 ### Step 3: Install Dependencies
 
@@ -113,9 +113,9 @@ project_root/
 
 ### 1. Run the Main Script
 
-<CODE>
+```
 python main.py
-</CODE>
+```
 
 On the first run:
 
