@@ -12,3 +12,4 @@ class CreateEventInput(BaseModel):
         if "start_time" in values and v <= values["start_time"]:
             raise ValueError("end_time must be after start_time")
         return v
+
