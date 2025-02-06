@@ -1,4 +1,4 @@
-# LangGraph + Google Calendar Integration
+# LangGraph Demonstration for Capstone Members
 
 A lightweight but scalable project template that integrates LangGraph (or LangChain-based workflows) with Google Calendar using Python.
 
